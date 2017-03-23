@@ -1,0 +1,10 @@
+function h = plotwindow(im,poz)
+% Funkcja rysuje okno na obrazku im. Okno zdefiniowane jako zakres:
+% poz = [r_start r_stop;
+%        k_start k_stop]
+
+h = figure;
+imshow(im,[]);
+hold on
+
+XY

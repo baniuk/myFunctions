@@ -1,0 +1,823 @@
+function varargout = crackpattern(varargin)
+% CRACKPATTERN M-file for crackpattern.fig
+%      CRACKPATTERN, by itself, creates a new CRACKPATTERN or raises the existing
+%      singleton*.
+%
+%      H = CRACKPATTERN returns the handle to a new CRACKPATTERN or the handle to
+%      the existing singleton*.
+%
+%      CRACKPATTERN('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in CRACKPATTERN.M with the given input arguments.
+%
+%      CRACKPATTERN('Property','Value',...) creates a new CRACKPATTERN or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before crackpattern_OpeningFunction gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to crackpattern_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Copyright 2002-2003 The MathWorks, Inc.
+
+% Edit the above text to modify the response to help crackpattern
+
+% Last Modified by GUIDE v2.5 11-Feb-2005 22:03:33
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @crackpattern_OpeningFcn, ...
+                   'gui_OutputFcn',  @crackpattern_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before crackpattern is made visible.
+function crackpattern_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to crackpattern (see VARARGIN)
+
+% Choose default command line output for crackpattern
+handles.output = hObject;
+crackstructgui;
+handles.crackstruct=crackstruct;
+handles.wada{1} = [];
+handles.wadatlo = [];
+handles.Snazwa_tla = {'none'};
+handles.Lastsaved = '';
+handles.pozycja = 2; % do listy
+handles.gcfHandle = [];
+UpdateGui;
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes crackpattern wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = crackpattern_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+function nazwa_tla_Callback(hObject, eventdata, handles)
+% hObject    handle to nazwa_tla (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of nazwa_tla as text
+%        str2double(get(hObject,'String')) returns contents of nazwa_tla as a double
+if strcmp(get(handles.figure1,'SelectionType'),'open') 
+    index_selected = get(hObject,'Value');
+    item_list = get(hObject,'String');
+    tmp = evalin('base',item_list{index_selected});
+    if isstruct(tmp)
+        tmp = tmp.param;
+    end
+    handles.wadatlo{1} = expandwada(tmp{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+    negenable(handles,'off');
+    [handles.gcfHandle,unused] = createcrackgui('update',15000,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                        [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+    [unused,handles.wada{1}] = createcrackgui('cont',handles.gcfHandle,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                        [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+    
+    guidata(hObject, handles);
+    negenable(handles,'on');
+end
+
+
+
+% --- Executes during object creation, after setting all properties.
+function nazwa_tla_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to nazwa_tla (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in load_tlo.
+function load_tlo_Callback(hObject, eventdata, handles)
+% hObject    handle to load_tlo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wy = lb;           % w {2} uchwyt do dialogu
+if isempty(wy)
+    return;
+end
+tmp = evalin('base',wy{1});
+if isstruct(tmp)
+    tmp = tmp.param;
+end
+handles.wadatlo{1} = expandwada(tmp{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+close(wy{2});
+negenable(handles,'off');
+[handles.gcfHandle,unused] = createcrackgui('update',15000,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+[unused,handles.wada{1}] = createcrackgui('cont',handles.gcfHandle,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');
+
+% --- Executes on button press in Openlast_tlo.
+function Openlast_tlo_Callback(hObject, eventdata, handles)
+% hObject    handle to Openlast_tlo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+item_list = get(handles.nazwa_tla,'String');
+ostatnietlo = item_list{handles.pozycja-1};
+set(handles.nazwa_tla,'Value',handles.pozycja-1);
+tmp = evalin('base',ostatnietlo);
+if isstruct(tmp)
+    tmp = tmp.param;
+end
+handles.wadatlo{1} = expandwada(tmp{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+close(handles.gcfHandle);
+negenable(handles,'off');
+[handles.gcfHandle,unused] = createcrackgui('update',15000,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+[unused,handles.wada{1}] = createcrackgui('cont',handles.gcfHandle,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+guidata(hObject, handles);
+negenable(handles,'on');
+    
+guidata(hObject, handles);
+% --- Executes on button press in getactual_tlo.
+function getactual_tlo_Callback(hObject, eventdata, handles)
+% hObject    handle to getactual_tlo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.wadatlo = handles.wada;
+negenable(handles,'off');
+close(handles.gcfHandle);
+[handles.gcfHandle,unused] = createcrackgui('update',15000,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+[unused,handles.wada{1}] = createcrackgui('cont',handles.gcfHandle,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wadatlo{1});
+guidata(hObject, handles);
+negenable(handles,'on');
+
+% --- Executes on button press in open_crack.
+function open_crack_Callback(hObject, eventdata, handles)
+% hObject    handle to open_crack (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wy = lb;           % w {2} uchwyt do dialogu
+if isempty(wy)
+    return
+end
+tmp = evalin('base',wy{1});
+if isstruct(tmp)
+    tmp = tmp.param;
+end
+handles.wada{1} = expandwada(tmp{1},[handles.crackstruct.Ssizepointy handles.crackstruct.Ssizepointx],...
+                                    [handles.crackstruct.Ssizey handles.crackstruct.Ssizex]);
+close(wy{2});
+handles.Lastsaved = wy{1};
+if ~isequal(wy{1},handles.Snazwa_tla{handles.pozycja-1})
+    handles.Snazwa_tla{handles.pozycja} = wy{1};
+    set(handles.nazwa_tla,'String',handles.Snazwa_tla);
+    set(handles.nazwa_tla,'Value',handles.pozycja);
+    handles.pozycja = handles.pozycja + 1;
+    if handles.pozycja>10
+        handles.pozycja = 2;
+    end
+end
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');
+
+
+% --- Executes on button press in save_crack.
+function save_crack_Callback(hObject, eventdata, handles)
+% hObject    handle to save_crack (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+tmp = handles.wada;
+tmp{1} = cutwada(tmp{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],[handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+tmp{2} = crack2fem(tmp{1},handles.crackstruct.Step,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.crackstruct.Config);
+tmp{3} = handles.crackstruct.Config;
+tmp{4} = [handles.crackstruct.Ssizex handles.crackstruct.Ssizey];
+tmp{5} = [handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy];
+tmp{6} = createwklad(tmp{1},handles.crackstruct.Ssizey);
+tmp{7} = handles.crackstruct.Step;
+tmp{9} = '1 - obcieta wada; 2 - struktura do liczwady; 3 - konfig; 4 - rozmiary obszaru; 5 - rozmiary punktu; 6 - profil wady skalowany do grubosci plyty; 7 - step; 8 - nazwa pliku';
+prompt = {'Enter file name'};
+dlg_title = 'Save in workspace';
+num_lines = 1;
+def     = {handles.Lastsaved};
+answer  = inputdlg(prompt,dlg_title,num_lines,def);
+if isempty(answer)
+    return
+end
+if ~strcmp(answer{1},'')
+    answer = answer{1};
+    tmp{8} = answer;
+    assignin('base',answer,tmp);
+    handles.Lastsaved = answer;
+    if ~isequal(answer,handles.Snazwa_tla{handles.pozycja-1})
+        handles.Snazwa_tla{handles.pozycja} = answer;
+        set(handles.nazwa_tla,'String',handles.Snazwa_tla);
+        set(handles.nazwa_tla,'Value',handles.pozycja);
+    %     handles.tla{handles.pozycja-1} = tmp;
+        handles.pozycja = handles.pozycja + 1;
+        if handles.pozycja>10
+            handles.pozycja = 2;
+        end
+    end
+end;
+
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function text6_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to text6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function text7_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to text7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function text8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to text8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+
+function sizepointx_Callback(hObject, eventdata, handles)
+% hObject    handle to sizepointx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sizepointx as text
+%        str2double(get(hObject,'String')) returns contents of sizepointx as a double
+handles.crackstruct.Ssizepointx = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sizepointx_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sizepointx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+
+function sizepointy_Callback(hObject, eventdata, handles)
+% hObject    handle to sizepointy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sizepointy as text
+%        str2double(get(hObject,'String')) returns contents of sizepointy as a double
+handles.crackstruct.Ssizepointy = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sizepointy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sizepointy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+function sizex_Callback(hObject, eventdata, handles)
+% hObject    handle to sizex (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sizex as text
+%        str2double(get(hObject,'String')) returns contents of sizex as a double
+handles.crackstruct.Ssizex = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sizex_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sizex (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+
+function sizey_Callback(hObject, eventdata, handles)
+% hObject    handle to sizey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of sizey as text
+%        str2double(get(hObject,'String')) returns contents of sizey as a double
+handles.crackstruct.Ssizey = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function sizey_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sizey (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in loadconfig.
+function loadconfig_Callback(hObject, eventdata, handles)
+% hObject    handle to loadconfig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[file,path]=uigetfile('*.ccc','Load Window Config');
+if file~=0
+    nazwa = sprintf('%s%s',path,file);
+    tmp = load(nazwa,'-mat');
+    handles.crackstruct.Ssizepointx = tmp.tmp.Ssizepointx;
+    handles.crackstruct.Ssizepointy = tmp.tmp.Ssizepointy;
+    handles.crackstruct.Ssizex = tmp.tmp.Ssizex;
+    handles.crackstruct.Ssizey = tmp.tmp.Ssizey;
+    handles.crackstruct.Config = tmp.tmp.Config;
+    handles.crackstruct.Cpomoc = tmp.tmp.Cpomoc;
+    handles.crackstruct.Step = tmp.tmp.Step;
+    guidata(hObject, handles);
+    UpdateGui;
+end
+
+% --- Executes on button press in saveconfig.
+function saveconfig_Callback(hObject, eventdata, handles)
+% hObject    handle to saveconfig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[file,path]=uiputfile('*.ccc','Save Window Config');
+if file~=0
+    nazwa = sprintf('%s%s',path,file);
+    handles.Lastsaved = file;
+    tmp = handles.crackstruct;
+    guidata(hObject, handles);
+    save(nazwa,'tmp');
+end;
+
+% --- Executes on button press in plotfield.
+function plotfield_Callback(hObject, eventdata, handles)
+% hObject    handle to plotfield (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+guidata(hObject, handles);
+negenable(handles,'on');
+
+% --- Executes on button press in preview.
+function preview_Callback(hObject, eventdata, handles)
+% hObject    handle to preview (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wy = lb;           % w {2} uchwyt do dialogu
+if isempty(wy)
+    return;
+end
+tmp = evalin('base',wy{1});
+if isstruct(tmp)
+    tmp = tmp.param;
+end
+handles.wada{1} = expandwada(tmp{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+close(wy{2});
+% close(handles.gcfHandle);
+[handles.gcfHandle,unused] = createcrackgui('update',15000,[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+set(handles.gcfHandle,'Name',wy{1});
+
+if ~isequal(wy{1},handles.Snazwa_tla{handles.pozycja-1})
+    handles.Snazwa_tla{handles.pozycja} = wy{1};
+    set(handles.nazwa_tla,'String',handles.Snazwa_tla);
+    set(handles.nazwa_tla,'Value',handles.pozycja);
+%     handles.tla{handles.pozycja-1} = wada;
+    handles.pozycja = handles.pozycja + 1;
+    if handles.pozycja>10
+        handles.pozycja = 2;
+    end
+end
+guidata(hObject, handles);
+
+
+function c1w_Callback(hObject, eventdata, handles)
+% hObject    handle to c1w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c1w as text
+%        str2double(get(hObject,'String')) returns contents of c1w as a double
+if eval(get(hObject,'String'))==0
+    return;
+end
+handles.crackstruct.Config{1} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{1} = get(hObject,'String');
+guidata(hObject, handles);
+
+function c2w_Callback(hObject, eventdata, handles)
+% hObject    handle to c2w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c2w as text
+%        str2double(get(hObject,'String')) returns contents of c2w as a double
+if eval(get(hObject,'String'))==0
+    return;
+end
+handles.crackstruct.Config{2} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{2} = get(hObject,'String');
+guidata(hObject, handles);
+
+function c3_Callback(hObject, eventdata, handles)
+% hObject    handle to c3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c3 as text
+%        str2double(get(hObject,'String')) returns contents of c3 as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{3} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{3} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c3w_Callback(hObject, eventdata, handles)
+% hObject    handle to c3w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c3w as text
+%        str2double(get(hObject,'String')) returns contents of c3w as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{4} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{4} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c4_Callback(hObject, eventdata, handles)
+% hObject    handle to c4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c4 as text
+%        str2double(get(hObject,'String')) returns contents of c4 as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{5} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{5} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c4w_Callback(hObject, eventdata, handles)
+% hObject    handle to c4w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c4w as text
+%        str2double(get(hObject,'String')) returns contents of c4w as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{6} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{6} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c5_Callback(hObject, eventdata, handles)
+% hObject    handle to c5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c5 as text
+%        str2double(get(hObject,'String')) returns contents of c5 as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{7} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{7} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c5w_Callback(hObject, eventdata, handles)
+% hObject    handle to c5w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c5w as text
+%        str2double(get(hObject,'String')) returns contents of c5w as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{8} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{8} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c6_Callback(hObject, eventdata, handles)
+% hObject    handle to c6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c6 as text
+%        str2double(get(hObject,'String')) returns contents of c6 as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{9} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{9} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+
+function c6w_Callback(hObject, eventdata, handles)
+% hObject    handle to c6w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c6w as text
+%        str2double(get(hObject,'String')) returns contents of c6w as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{10} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{10} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function c7_Callback(hObject, eventdata, handles)
+% hObject    handle to c7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c7 as text
+%        str2double(get(hObject,'String')) returns contents of c7 as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{11} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{11} = get(hObject,'String');
+guidata(hObject, handles);
+
+function c7w_Callback(hObject, eventdata, handles)
+% hObject    handle to c7w (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of c7w as text
+%        str2double(get(hObject,'String')) returns contents of c7w as a double
+% if eval(get(hObject,'String'))==0
+%     return;
+% end
+handles.crackstruct.Config{12} = eval(get(hObject,'String'));
+handles.crackstruct.Cpomoc{12} = get(hObject,'String');
+guidata(hObject, handles);
+
+
+function step_Callback(hObject, eventdata, handles)
+% hObject    handle to step (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of step as text
+%        str2double(get(hObject,'String')) returns contents of step as a double
+
+handles.crackstruct.Step = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function step_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to step (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+function wadaout = cutwada(wada,sizepoints, sizes)
+% funkcja przycina macierz wada tak aby rozmiar po x odpowiada dugoci
+% wady. Umoliwia to tworzenie wielu wad o rónych dugociach na jednym
+% modelu o tej camej iloci punktów. Zapobiegawczo przycina takze wysokosc
+% do tej zdefiniowanej w okienku
+if isempty(wada)
+    wadaout = [];
+    return
+end
+numpoints = sizes./sizepoints;
+[y,x] = find(wada==1);
+minmaxx = minmax(x');
+[r, k] = size(minmaxx);
+if r>1
+    minmaxx = minmax(x);
+end
+wadaout = wada(1:numpoints(2),minmaxx(1):minmaxx(2));
+
+
+function wadaout = expandwada(wada,sizepoints, sizes)
+if isempty(wada)
+    wadaout = [];
+    return
+end
+numpoints = sizes./sizepoints;
+wadaout = zeros(numpoints);
+si = size(wada);
+wadaout(1:si(1),1:si(2)) = wada;
+
+
+% --- Executes on button press in Fill_B.
+function Fill_B_Callback(hObject, eventdata, handles)
+% hObject    handle to Fill_B (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.wada{1} = fillwada(handles.wada{1});
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');
+
+% --- Executes on button press in UD_B.
+function UD_B_Callback(hObject, eventdata, handles)
+% hObject    handle to UD_B (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.wada{1} = flipud(handles.wada{1});
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');
+
+
+
+% --- Executes on button press in MoveU_B.
+function MoveU_B_Callback(hObject, eventdata, handles)
+% hObject    handle to MoveU_B (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wadamala = cutwada(handles.wada{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy], [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+s = size(wadamala);
+wadamala(1,:) = [];
+wadamala(s(1),:) = 0;
+s = size(wadamala);
+sizes = [handles.crackstruct.Ssizex handles.crackstruct.Ssizey];
+sizepoints = [handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy];
+numpoints = sizes./sizepoints;
+if s(1)>numpoints(2)
+    s(1) = numpoints(2);
+end
+handles.wada{1}(1:s(1),1:s(2)) = wadamala(1:s(1),:);
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');                 
+
+% --- Executes on button press in MoveD_B.
+function MoveD_B_Callback(hObject, eventdata, handles)
+% hObject    handle to MoveD_B (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wadamala = cutwada(handles.wada{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy], [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+s = size(wadamala);
+wadamala(2:s(1)+1,:) = wadamala;
+wadamala(1,:) = 1;
+s = size(wadamala);
+sizes = [handles.crackstruct.Ssizex handles.crackstruct.Ssizey];
+sizepoints = [handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy];
+numpoints = sizes./sizepoints;
+if s(1)>numpoints(2)
+    s(1) = numpoints(2);
+end
+handles.wada{1}(1:s(1),1:s(2)) = wadamala(1:s(1),:);
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');                      
+% --- Executes on button press in LR_B.
+function LR_B_Callback(hObject, eventdata, handles)
+% hObject    handle to LR_B (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+wadamala = cutwada(handles.wada{1},[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy], [handles.crackstruct.Ssizex handles.crackstruct.Ssizey]);
+wadamala = fliplr(wadamala);
+s = size(wadamala);
+handles.wada{1}(1:s(1),1:s(2)) = wadamala;
+if ishandle(handles.gcfHandle)
+    close(handles.gcfHandle);
+end
+negenable(handles,'off');
+[handles.gcfHandle,handles.wada{1}] = createcrackgui('new',[handles.crackstruct.Ssizepointx handles.crackstruct.Ssizepointy],...
+                                    [handles.crackstruct.Ssizex handles.crackstruct.Ssizey],handles.wada{1});
+
+guidata(hObject, handles);
+negenable(handles,'on');
+

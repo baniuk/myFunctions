@@ -1,0 +1,6 @@
+Obs³uga:
+
+1. tworzenie wad w crackpattern: wynik - struktury cell w workspace
+2. symulacja: liczwady30(F,w12)
+3. postprocesing: w1=wpostproc1('w1',F,1:72); zamienia cell w struktury ze spektrogramem
+4. plotprofile - rysuje profil wady. Na wejsciu w1
